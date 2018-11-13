@@ -1,10 +1,14 @@
+Parameters:
+  KeyName:
+    Description: 'Example Key Pair'
+    Type: 'AWS::EC2::KeyPair::KeyName' # example key pair is ha_website
 Resources:
   Ec2Instance:
     Type: 'AWS::EC2::Instance'
     Properties:
       SecurityGroups:
         - !Ref InstanceSecurityGroup
-      KeyName: ha_website
+      KeyName: !Ref KeyName
       ImageId: 'ami-0b59bfac6be064b78'
       InstanceType: 't3.nano'
       BlockDeviceMappings:
