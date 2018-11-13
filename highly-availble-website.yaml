@@ -2,6 +2,10 @@ Parameters:
   KeyName:
     Description: 'Example Key Pair'
     Type: 'AWS::EC2::KeyPair::KeyName' # example key pair is ha_website
+  SshIp:
+    Type: 'String'
+    Default: '64.183.181.70/32'
+    Description: 'Should be the users current ip address'
 Resources:
   VPC:
     Type: 'AWS::EC2::VPC'
@@ -34,7 +38,7 @@ Resources:
         Ref: VPC
   NatGatewayEIP:
     Type: 'AWS::EC2::EIP'
-  PublicSubnet:
+  PublicSubnet1:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
@@ -46,13 +50,13 @@ Resources:
       Tags:
         -
           Key: 'Name'
-          Value: 'PublicSubnet1'
-  PublicSubnetAssociation:
+          Value: 'PublicSubnet1'       
+  PublicSubnetAssociation1:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
       RouteTableId: !Ref CustomRouteTablePublic
-      SubnetId: !Ref PublicSubnet
-  PrivateSubnet:
+      SubnetId: !Ref PublicSubnet1
+  PrivateSubnet1:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
@@ -65,11 +69,47 @@ Resources:
         -
           Key: 'Name'
           Value: 'PrivateSubnet1'
-  PrivateSubnetAssociation:
+  PrivateSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: '10.0.2.0/26'
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ''
+      Tags:
+        -
+          Key: 'Name'
+          Value: 'PrivateSubnet2'
+  PrivateSubnet3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: '10.0.3.0/26'
+      AvailabilityZone:
+        Fn::Select:
+          - 2
+          - Fn::GetAZs: ''
+      Tags:
+        -
+          Key: 'Name'
+          Value: 'PrivateSubnet3'                      
+  PrivateSubnetAssociation1:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
       RouteTableId: !Ref CustomRouteTablePrivate
-      SubnetId: !Ref PrivateSubnet          
+      SubnetId: !Ref PrivateSubnet1
+  PrivateSubnetAssociation2:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref CustomRouteTablePrivate
+      SubnetId: !Ref PrivateSubnet2
+  PrivateSubnetAssociation3:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref CustomRouteTablePrivate
+      SubnetId: !Ref PrivateSubnet3     
   RouteToIgw:
     Type: 'AWS::EC2::Route'
     DependsOn: GatewayToInternet # internet gateway has to be attached to the VPC before it can be assigned to a route
@@ -84,7 +124,7 @@ Resources:
     DependsOn: GatewayToInternet
     Properties:
       SubnetId:
-        Ref: PublicSubnet
+        Ref: PublicSubnet1
       AllocationId:
         Fn::GetAtt:
           - NatGatewayEIP
@@ -97,11 +137,11 @@ Resources:
       DestinationCidrBlock: '0.0.0.0/0'
       NatGatewayId:
         Ref: NatGateway
-  Ec2Instance:
+  BastionHost: # bastion host instance
     Type: 'AWS::EC2::Instance'
     Properties:
       SecurityGroups:
-        - !Ref InstanceSecurityGroup
+        - !Ref BastionHostSecurityGroup
       KeyName: !Ref KeyName
       ImageId: 'ami-0b59bfac6be064b78'
       InstanceType: 't3.nano'
@@ -110,7 +150,7 @@ Resources:
           DeviceName: /dev/sda1
           Ebs:
             VolumeSize: 50
-  InstanceSecurityGroup:
+  BastionHostSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
       GroupDescription: Enable SSH access via port 22
@@ -118,4 +158,4 @@ Resources:
         - IpProtocol: tcp
           FromPort: '22'
           ToPort: '22'
-          CidrIp: 0.0.0.0/0
+          CidrIp: !Ref SshIp
