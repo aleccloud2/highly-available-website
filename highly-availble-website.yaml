@@ -10,6 +10,19 @@ Resources:
       EnableDnsSupport: 'true'
       EnableDnsHostnames: 'true'
       InstanceTenancy: 'default'
+  CustomRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+  GatewayToInternet: # attaches internet gateway to the vpc
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      InternetGatewayId:
+        Ref: InternetGateway
+      VpcId:
+        Ref: VPC      
   PublicSubnet:
     Type: 'AWS::EC2::Subnet'
     Properties:
@@ -28,6 +41,15 @@ Resources:
         Fn::Select:
           - 0
           - Fn::GetAZs: ''
+  RouteToIgw:
+    Type: 'AWS::EC2::Route'
+    DependsOn: GatewayToInternet # internet gateway has to be attached to the VPC before it can be assigned to a route
+    Properties:
+      RouteTableId:
+        Ref: CustomRouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId:
+        Ref: InternetGateway
   Ec2Instance:
     Type: 'AWS::EC2::Instance'
     Properties:
