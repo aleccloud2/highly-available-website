@@ -43,6 +43,10 @@ Resources:
         Fn::Select:
           - 0
           - Fn::GetAZs: ''
+      Tags:
+        -
+          Key: 'Name'
+          Value: 'PublicSubnet1'
   PublicSubnetAssociation:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
@@ -57,6 +61,10 @@ Resources:
         Fn::Select:
           - 0
           - Fn::GetAZs: ''
+      Tags:
+        -
+          Key: 'Name'
+          Value: 'PrivateSubnet1'
   PrivateSubnetAssociation:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
@@ -67,7 +75,7 @@ Resources:
     DependsOn: GatewayToInternet # internet gateway has to be attached to the VPC before it can be assigned to a route
     Properties:
       RouteTableId:
-        Ref: CustomRouteTablePrivate
+        Ref: CustomRouteTablePublic
       DestinationCidrBlock: '0.0.0.0/0'
       GatewayId:
         Ref: InternetGateway
@@ -85,7 +93,7 @@ Resources:
     Type: 'AWS::EC2::Route'
     Properties:
       RouteTableId:
-        Ref: CustomRouteTablePublic
+        Ref: CustomRouteTablePrivate
       DestinationCidrBlock: '0.0.0.0/0'
       NatGatewayId:
         Ref: NatGateway
