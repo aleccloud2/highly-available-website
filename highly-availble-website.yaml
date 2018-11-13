@@ -3,6 +3,13 @@ Parameters:
     Description: 'Example Key Pair'
     Type: 'AWS::EC2::KeyPair::KeyName' # example key pair is ha_website
 Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: '10.0.0.0/28'
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      InstanceTenancy: 'default'
   Ec2Instance:
     Type: 'AWS::EC2::Instance'
     Properties:
@@ -16,10 +23,6 @@ Resources:
           DeviceName: /dev/sda1
           Ebs:
             VolumeSize: 50
-        -
-          DeviceName: /dev/sdm
-          Ebs:
-            VolumeSize: 100
   InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
