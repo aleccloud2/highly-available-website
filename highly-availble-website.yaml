@@ -14,10 +14,15 @@ Resources:
         -
           Key: 'Name'
           Value: 'Highly Available Website'
-  CustomRouteTable:
+  CustomRouteTablePrivate:
     Type: 'AWS::EC2::RouteTable'
     Properties:
       VpcId: !Ref VPC
+  CustomRouteTablePublic:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId:
+        Ref: VPC
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
   GatewayToInternet: # attaches internet gateway to the vpc
@@ -26,7 +31,9 @@ Resources:
       InternetGatewayId:
         Ref: InternetGateway
       VpcId:
-        Ref: VPC      
+        Ref: VPC
+  NatGatewayEIP:
+    Type: 'AWS::EC2::EIP'
   PublicSubnet:
     Type: 'AWS::EC2::Subnet'
     Properties:
@@ -36,6 +43,11 @@ Resources:
         Fn::Select:
           - 0
           - Fn::GetAZs: ''
+  PublicSubnetAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref CustomRouteTablePublic
+      SubnetId: !Ref PublicSubnet
   PrivateSubnet:
     Type: 'AWS::EC2::Subnet'
     Properties:
@@ -45,15 +57,38 @@ Resources:
         Fn::Select:
           - 0
           - Fn::GetAZs: ''
+  PrivateSubnetAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref CustomRouteTablePrivate
+      SubnetId: !Ref PrivateSubnet          
   RouteToIgw:
     Type: 'AWS::EC2::Route'
     DependsOn: GatewayToInternet # internet gateway has to be attached to the VPC before it can be assigned to a route
     Properties:
       RouteTableId:
-        Ref: CustomRouteTable
+        Ref: CustomRouteTablePrivate
       DestinationCidrBlock: '0.0.0.0/0'
       GatewayId:
         Ref: InternetGateway
+  NatGateway:
+    Type: 'AWS::EC2::NatGateway'
+    DependsOn: GatewayToInternet
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet
+      AllocationId:
+        Fn::GetAtt:
+          - NatGatewayEIP
+          - AllocationId
+  RouteToNatGateway:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId:
+        Ref: CustomRouteTablePublic
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId:
+        Ref: NatGateway
   Ec2Instance:
     Type: 'AWS::EC2::Instance'
     Properties:
