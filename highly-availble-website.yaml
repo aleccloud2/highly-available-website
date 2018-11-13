@@ -42,7 +42,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: '10.0.0.0/26'
+      CidrBlock: '10.0.0.0/28'
       AvailabilityZone:
         Fn::Select:
           - 0
@@ -60,7 +60,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: '10.0.1.0/26'
+      CidrBlock: '10.0.1.0/28'
       AvailabilityZone:
         Fn::Select:
           - 0
@@ -69,11 +69,34 @@ Resources:
         -
           Key: 'Name'
           Value: 'PrivateSubnet1'
+  PrivateSubnetAssociation1:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref CustomRouteTablePrivate
+      SubnetId: !Ref PrivateSubnet1
+  PublicSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: '10.0.2.0/28'
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ''
+      Tags:
+        -
+          Key: 'Name'
+          Value: 'PublicSubnet2'       
+  PublicSubnetAssociation2:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref CustomRouteTablePublic
+      SubnetId: !Ref PublicSubnet2
   PrivateSubnet2:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: '10.0.2.0/26'
+      CidrBlock: '10.0.3.0/28'
       AvailabilityZone:
         Fn::Select:
           - 1
@@ -82,11 +105,34 @@ Resources:
         -
           Key: 'Name'
           Value: 'PrivateSubnet2'
+  PrivateSubnetAssociation2:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref CustomRouteTablePrivate
+      SubnetId: !Ref PrivateSubnet2          
+  PublicSubnet3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: '10.0.4.0/28'
+      AvailabilityZone:
+        Fn::Select:
+          - 2
+          - Fn::GetAZs: ''
+      Tags:
+        -
+          Key: 'Name'
+          Value: 'PublicSubnet3'       
+  PublicSubnetAssociation3:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref CustomRouteTablePublic
+      SubnetId: !Ref PublicSubnet3
   PrivateSubnet3:
     Type: 'AWS::EC2::Subnet'
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: '10.0.3.0/26'
+      CidrBlock: '10.0.5.0/28'
       AvailabilityZone:
         Fn::Select:
           - 2
@@ -95,21 +141,11 @@ Resources:
         -
           Key: 'Name'
           Value: 'PrivateSubnet3'                      
-  PrivateSubnetAssociation1:
-    Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Properties:
-      RouteTableId: !Ref CustomRouteTablePrivate
-      SubnetId: !Ref PrivateSubnet1
-  PrivateSubnetAssociation2:
-    Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Properties:
-      RouteTableId: !Ref CustomRouteTablePrivate
-      SubnetId: !Ref PrivateSubnet2
   PrivateSubnetAssociation3:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
       RouteTableId: !Ref CustomRouteTablePrivate
-      SubnetId: !Ref PrivateSubnet3     
+      SubnetId: !Ref PrivateSubnet3   
   RouteToIgw:
     Type: 'AWS::EC2::Route'
     DependsOn: GatewayToInternet # internet gateway has to be attached to the VPC before it can be assigned to a route
@@ -150,6 +186,10 @@ Resources:
           DeviceName: /dev/sda1
           Ebs:
             VolumeSize: 50
+      Tags:
+        -
+          Key: 'Name'
+          Value: 'BastionHost'
   BastionHostSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
