@@ -200,13 +200,49 @@ Resources:
   BastionHostSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
-      GroupDescription: Enable SSH access via port 22
+      GroupDescription: 'Enable SSH access via port 22 to a specific ip address'
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '22'
           ToPort: '22'
           CidrIp: !Ref SshIp
+      Tags:
+        -
+          Key: 'Name'
+          Value: 'BastionHostSecurityGroup'
+  ELBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Enable http access to the load balancer'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: '0.0.0.0/0'
+      Tags:
+        -
+          Key: 'Name'
+          Value: 'ELBSecurityGroup'
+  WebServerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Enable http access from the load balancer to the web servers'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          SourceSecurityGroupId: !Ref ELBSecurityGroup
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          SourceSecurityGroupId: !Ref BastionHostSecurityGroup
+      Tags:
+        -
+          Key: 'Name'
+          Value: 'WebServerSecurityGroup'
   ElasticLoadBalancer:
     Type: 'AWS::ElasticLoadBalancing::LoadBalancer'
     DependsOn: GatewayToInternet
@@ -227,6 +263,8 @@ Resources:
         Target: 'HTTP:80/'
         UnhealthyThreshold: '5'
         Timeout: '5'
+      SecurityGroups:
+        - !Ref ELBSecurityGroup
   AutoScalingLaunchConfiguration:
     Type: 'AWS::AutoScaling::LaunchConfiguration'
     Properties:
@@ -240,7 +278,7 @@ Resources:
           Ebs:
             VolumeSize: 50
       SecurityGroups:
-        - !Ref BastionHostSecurityGroup
+        - !Ref WebServerSecurityGroup
   AutoScalingWebServerGroup:
     Type: 'AWS::AutoScaling::AutoScalingGroup'
     DependsOn: GatewayToInternet
