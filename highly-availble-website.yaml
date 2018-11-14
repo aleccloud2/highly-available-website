@@ -221,6 +221,45 @@ Resources:
           LoadBalancerPort: '80'
           InstancePort: '80'
           Protocol: HTTP
+      HealthCheck:
+        HealthyThreshold: '10'
+        Interval: '30'
+        Target: 'HTTP:80/'
+        UnhealthyThreshold: '5'
+        Timeout: '5'
+  AutoScalingLaunchConfiguration:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
+    Properties:
+      ImageId: 'ami-0ed6cb2cc93251fe7'
+      InstanceType: 't3.nano'
+      KeyName: !Ref KeyName
+      LaunchConfigurationName: 'HALaunchConfiguration2'
+      BlockDeviceMappings:
+        -
+          DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 50
+      SecurityGroups:
+        - !Ref BastionHostSecurityGroup
+  AutoScalingWebServerGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    DependsOn: GatewayToInternet
+    Properties:
+      AutoScalingGroupName: 'HAAutoScaling'
+      AvailabilityZones:
+        Fn::GetAZs: ''
+      MinSize: '3'
+      MaxSize: '3'
+      LoadBalancerNames: 
+        - !Ref ElasticLoadBalancer
+      LaunchConfigurationName: !Ref AutoScalingLaunchConfiguration
+      HealthCheckType: 'ELB'
+      HealthCheckGracePeriod: '60'
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
+
 
 
 
