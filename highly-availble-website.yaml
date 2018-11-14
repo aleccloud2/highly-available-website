@@ -258,11 +258,11 @@ Resources:
           InstancePort: '80'
           Protocol: HTTP
       HealthCheck:
-        HealthyThreshold: '10'
-        Interval: '30'
-        Target: 'HTTP:80/'
-        UnhealthyThreshold: '5'
-        Timeout: '5'
+        HealthyThreshold: '3'
+        Interval: '5'
+        Target: 'HTTP:80/index.html'
+        UnhealthyThreshold: '3'
+        Timeout: '2'
       SecurityGroups:
         - !Ref ELBSecurityGroup
   AutoScalingLaunchConfiguration:
@@ -287,7 +287,7 @@ Resources:
       AvailabilityZones:
         Fn::GetAZs: ''
       MinSize: '3'
-      MaxSize: '3'
+      MaxSize: '9'
       LoadBalancerNames: 
         - !Ref ElasticLoadBalancer
       LaunchConfigurationName: !Ref AutoScalingLaunchConfiguration
