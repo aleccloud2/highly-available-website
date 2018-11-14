@@ -167,6 +167,7 @@ Resources:
           - AllocationId
   RouteToNatGateway:
     Type: 'AWS::EC2::Route'
+    DependsOn: NatGateway
     Properties:
       RouteTableId:
         Ref: CustomRouteTablePrivate
@@ -213,13 +214,14 @@ Resources:
       LoadBalancerName: 'HALoadBalancer'
       Subnets:
         - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+        - !Ref PublicSubnet3
       Listeners:
         -
           LoadBalancerPort: '80'
           InstancePort: '80'
           Protocol: HTTP
 
-# [',', [!Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3]]
 
 
 
