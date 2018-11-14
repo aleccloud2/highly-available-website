@@ -176,8 +176,6 @@ Resources:
   BastionHost: # bastion host instance
     Type: 'AWS::EC2::Instance'
     Properties:
-      SecurityGroups:
-        - !Ref BastionHostSecurityGroup
       KeyName: !Ref KeyName
       ImageId: 'ami-0b59bfac6be064b78'
       InstanceType: 't3.nano'
@@ -186,6 +184,14 @@ Resources:
           DeviceName: /dev/sda1
           Ebs:
             VolumeSize: 50
+      NetworkInterfaces:
+        - 
+          AssociatePublicIpAddress: 'true'
+          DeviceIndex: '0'
+          SubnetId: !Ref PublicSubnet1
+          GroupSet:
+            - 
+              !Ref BastionHostSecurityGroup
       Tags:
         -
           Key: 'Name'
@@ -194,8 +200,29 @@ Resources:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
       GroupDescription: Enable SSH access via port 22
+      VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '22'
           ToPort: '22'
           CidrIp: !Ref SshIp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
