@@ -178,8 +178,8 @@ Resources:
     Type: 'AWS::EC2::Instance'
     Properties:
       KeyName: !Ref KeyName
-      ImageId: 'ami-0bbe6b35405ecebdb'
-      InstanceType: 't3.medium'
+      ImageId: 'ami-0b59bfac6be064b78'
+      InstanceType: 't3.nano'
       BlockDeviceMappings:
         -
           DeviceName: /dev/sda1
@@ -267,8 +267,8 @@ Resources:
   AutoScalingLaunchConfiguration:
     Type: 'AWS::AutoScaling::LaunchConfiguration'
     Properties:
-      ImageId: 'ami-0244d3172c2cf6ec6' # image id that was created for this highly available website
-      InstanceType: 't3.medium'
+      ImageId: 'ami-0ed6cb2cc93251fe7' # image id that was created for this highly available website
+      InstanceType: 't3.nano'
       KeyName: !Ref KeyName
       BlockDeviceMappings:
         -
@@ -281,20 +281,35 @@ Resources:
     Type: 'AWS::AutoScaling::AutoScalingGroup'
     DependsOn: GatewayToInternet
     Properties:
-      AutoScalingGroupName: 'HAAutoScaling'
       AvailabilityZones:
         Fn::GetAZs: ''
-      MinSize: '3'
+      MinSize: '1'
       MaxSize: '9'
+      Cooldown: '4'
       LoadBalancerNames: 
         - !Ref ElasticLoadBalancer
       LaunchConfigurationName: !Ref AutoScalingLaunchConfiguration
       HealthCheckType: 'ELB'
       HealthCheckGracePeriod: '60'
+      MetricsCollection:
+        -
+          Granularity: '1Minute'
+          Metrics:
+            - 'GroupDesiredCapacity'
       VPCZoneIdentifier:
         - !Ref PrivateSubnet1
         - !Ref PrivateSubnet2
         - !Ref PrivateSubnet3
+  AutoScalingPolicy:
+    Type: 'AWS::AutoScaling::ScalingPolicy'
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingWebServerGroup
+      PolicyType: 'TargetTrackingScaling'
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: '5'
+
 
 
 
