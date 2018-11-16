@@ -4,7 +4,7 @@ Parameters:
     Type: 'AWS::EC2::KeyPair::KeyName' # example key pair is ha_website
   SshIp:
     Type: 'String'
-    Default: '64.183.181.70/32'
+    Default: '8.47.96.136/32'
     Description: 'Should be the users current ip address'
 Resources:
   VPC:
@@ -178,8 +178,8 @@ Resources:
     Type: 'AWS::EC2::Instance'
     Properties:
       KeyName: !Ref KeyName
-      ImageId: 'ami-0b59bfac6be064b78'
-      InstanceType: 't3.nano'
+      ImageId: 'ami-0bbe6b35405ecebdb'
+      InstanceType: 't3.medium'
       BlockDeviceMappings:
         -
           DeviceName: /dev/sda1
@@ -247,7 +247,6 @@ Resources:
     Type: 'AWS::ElasticLoadBalancing::LoadBalancer'
     DependsOn: GatewayToInternet
     Properties:
-      LoadBalancerName: 'HALoadBalancer'
       Subnets:
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
@@ -268,10 +267,9 @@ Resources:
   AutoScalingLaunchConfiguration:
     Type: 'AWS::AutoScaling::LaunchConfiguration'
     Properties:
-      ImageId: 'ami-0ed6cb2cc93251fe7'
-      InstanceType: 't3.nano'
+      ImageId: 'ami-0244d3172c2cf6ec6' # image id that was created for this highly available website
+      InstanceType: 't3.medium'
       KeyName: !Ref KeyName
-      LaunchConfigurationName: 'HALaunchConfiguration2'
       BlockDeviceMappings:
         -
           DeviceName: /dev/sda1
